@@ -11,7 +11,7 @@
 // Socket.IO connection
 // ---------------------------------------------------------------------------
 
-const socket = io({ transports: ["websocket"] });
+const socket = io();
 
 // ---------------------------------------------------------------------------
 // DOM references
@@ -233,9 +233,10 @@ socket.on("camera_started", data => {
   if (data.success) setCameraRunning(true);
 });
 
-socket.on("camera_stopped", () => {
+socket.on("camera_stopped", data => {
   setCameraRunning(false);
   setDetectionActive(false);
+  if (data && data.error) showToast(data.error, "error");
 });
 
 socket.on("detection_started", () => setDetectionActive(true));
