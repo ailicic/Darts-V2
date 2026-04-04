@@ -163,9 +163,9 @@ def _camera_loop() -> None:
     cap.set(cv2.CAP_PROP_FPS, 30)
 
     if not cap.isOpened():
-        socketio.emit("error", {"message": f"Cannot open camera {cam_idx}"})
         with _state_lock:
             _state["camera_running"] = False
+        socketio.emit("camera_stopped", {"error": f"Cannot open camera {cam_idx}"})
         return
 
     frame_count = 0
