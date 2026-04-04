@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Darts-V2 – Real-Time Dart Detection</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <!-- ===== HEADER ===== -->
+  <header class="app-header">
+    <h1>🎯 Darts-V2</h1>
+    <span id="connection-status" class="badge badge-offline">Offline</span>
+  </header>
+
+  <!-- ===== MAIN LAYOUT ===== -->
+  <main class="app-body">
+
+    <!-- -------- VIDEO PANEL -------- -->
+    <section class="video-panel">
+      <div class="video-wrapper">
+        <img id="video-feed" src="/video_feed" alt="Camera feed" />
+        <!-- Calibration click layer (hidden until calibration mode) -->
+        <canvas id="calib-canvas" class="calib-canvas hidden"></canvas>
+        <div id="no-camera-overlay" class="no-camera-overlay">
+          <span>Camera offline – click <strong>Start Camera</strong></span>
+        </div>
+      </div>
+
+      <!-- Detection status bar below video -->
+      <div class="video-status-bar">
+        <span id="board-status" class="status-chip chip-warning">Board: searching…</span>
+        <span id="detect-status" class="status-chip chip-inactive">Detection: off</span>
+        <span id="fps-display" class="status-chip chip-neutral">FPS: –</span>
+        <span id="overlay-status" class="status-chip chip-active">Overlay: on</span>
+      </div>
+    </section>
+
+    <!-- -------- SCORE PANEL -------- -->
+    <aside class="score-panel">
+
+      <div class="score-total-box">
+        <div class="score-label">Total Score</div>
+        <div id="total-score" class="score-total">0</div>
+        <div id="dart-count" class="dart-count">0 darts</div>
+      </div>
+
+      <!-- Last dart card -->
+      <div class="last-dart-box" id="last-dart-box">
+        <div class="last-dart-label">Last Dart</div>
+        <div id="last-dart-summary" class="last-dart-summary">–</div>
+        <div id="last-dart-score" class="last-dart-score">–</div>
+        <div id="last-dart-confidence" class="confidence-bar-wrapper">
+          <div class="confidence-label">Confidence</div>
+          <div class="confidence-bar">
+            <div id="confidence-fill" class="confidence-fill" style="width:0%"></div>
+          </div>
+          <span id="confidence-pct" class="confidence-pct">0%</span>
+        </div>
+      </div>
+
+      <!-- Dart history list -->
+      <div class="history-box">
+        <div class="history-header">
+          <span>Session History</span>
+          <button class="btn-icon" id="btn-export-json" title="Export JSON">⬇ JSON</button>
+          <button class="btn-icon" id="btn-export-csv"  title="Export CSV">⬇ CSV</button>
+        </div>
+        <ul id="history-list" class="history-list">
+          <li class="history-empty">No darts logged yet.</li>
+        </ul>
+      </div>
+
+    </aside>
+  </main>
+
+  <!-- ===== CONTROL BAR ===== -->
+  <footer class="control-bar">
+    <button id="btn-camera"    class="btn btn-primary">Start Camera</button>
+    <button id="btn-detect"    class="btn btn-success" disabled>Start Detection</button>
+    <button id="btn-overlay"   class="btn btn-secondary">Toggle Overlay</button>
+    <button id="btn-undo"      class="btn btn-warning"   disabled>Undo</button>
+    <button id="btn-clear"     class="btn btn-danger"    disabled>Clear Scores</button>
+    <button id="btn-manual"    class="btn btn-info">Manual Entry</button>
+    <button id="btn-calibrate" class="btn btn-secondary">Calibrate Board</button>
+    <button id="btn-settings"  class="btn btn-secondary">⚙ Settings</button>
+  </footer>
+
+  <!-- ===== MANUAL ENTRY MODAL ===== -->
+  <div id="modal-manual" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <h2>Manual Dart Entry</h2>
+      <p>Use this when automatic detection missed or mis-detected a dart.</p>
+      <div class="form-row">
+        <label for="manual-number">Number (0 = Bull)</label>
+        <select id="manual-number">
+          <option value="0">Bull / Bullseye</option>
+          <option value="1">1</option><option value="2">2</option>
+          <option value="3">3</option><option value="4">4</option>
+          <option value="5">5</option><option value="6">6</option>
+          <option value="7">7</option><option value="8">8</option>
+          <option value="9">9</option><option value="10">10</option>
+          <option value="11">11</option><option value="12">12</option>
+          <option value="13">13</option><option value="14">14</option>
+          <option value="15">15</option><option value="16">16</option>
+          <option value="17">17</option><option value="18">18</option>
+          <option value="19">19</option><option value="20">20</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label for="manual-zone">Zone</label>
+        <select id="manual-zone">
+          <option value="Single">Single</option>
+          <option value="Double">Double</option>
+          <option value="Treble">Treble</option>
+          <option value="Bull">Bull (25)</option>
+          <option value="Bullseye">Bullseye (50)</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button id="btn-manual-confirm" class="btn btn-success">Add</button>
+        <button class="btn btn-secondary modal-close" data-modal="modal-manual">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CALIBRATION MODAL ===== -->
+  <div id="modal-calibrate" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <h2>Board Calibration</h2>
+      <p>Enter the board centre coordinates and the outer-double radius <em>in pixels</em>,
+         or use the interactive calibration on the video feed.</p>
+      <div class="form-row">
+        <label for="calib-cx">Centre X (px)</label>
+        <input id="calib-cx" type="number" placeholder="e.g. 640" />
+      </div>
+      <div class="form-row">
+        <label for="calib-cy">Centre Y (px)</label>
+        <input id="calib-cy" type="number" placeholder="e.g. 360" />
+      </div>
+      <div class="form-row">
+        <label for="calib-r">Radius (px)</label>
+        <input id="calib-r" type="number" placeholder="e.g. 280" />
+      </div>
+      <div class="modal-actions">
+        <button id="btn-calib-apply" class="btn btn-success">Apply</button>
+        <button id="btn-calib-interactive" class="btn btn-info">Click on Video</button>
+        <button class="btn btn-secondary modal-close" data-modal="modal-calibrate">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SETTINGS MODAL ===== -->
+  <div id="modal-settings" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <h2>⚙ Settings</h2>
+
+      <div class="form-row">
+        <label for="settings-camera">Camera Index</label>
+        <select id="settings-camera">
+          <option value="0">Camera 0 (default)</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label for="settings-cooldown">Detection cooldown (s)</label>
+        <input id="settings-cooldown" type="number" min="0.5" max="10" step="0.5" value="2.5" />
+      </div>
+
+      <div class="form-row">
+        <label for="settings-diff-thresh">Diff threshold (px)</label>
+        <input id="settings-diff-thresh" type="number" min="5" max="80" step="1" value="20" />
+      </div>
+
+      <div class="settings-info">
+        <strong>Tip:</strong> Lower diff threshold = more sensitive detection.<br/>
+        Increase cooldown if you get duplicate detections.
+      </div>
+
+      <div class="modal-actions">
+        <button id="btn-settings-apply" class="btn btn-success">Apply</button>
+        <button class="btn btn-secondary modal-close" data-modal="modal-settings">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast notifications -->
+  <div id="toast-container" aria-live="polite"></div>
+
+  <script src="js/socket.io.min.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,3 @@
+# Convenience file – mirrors backend/requirements.txt.
+# Run from the repo root:  pip install -r requirements.txt
+-r backend/requirements.txt
