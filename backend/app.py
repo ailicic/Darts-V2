@@ -407,9 +407,13 @@ def group_join(slug: str):
     Group entry point.  Redirects to /setup with the group's id embedded so
     the setup page can pre-populate groupId in localStorage.
     """
-    group = get_group_by_slug(slug)
+    # Validate slug before using it in a redirect to prevent open-redirect attacks
+    clean_slug = _sanitize_slug(slug)
+    if not clean_slug:
+        return redirect("/setup")
+    group = get_group_by_slug(clean_slug)
     if not group:
-        return redirect(f"/setup?group_slug={slug}&create=1")
+        return redirect(f"/setup?group_slug={clean_slug}&create=1")
     return redirect(f"/setup?group_id={group['id']}&group_name={group['name']}")
 
 
@@ -503,8 +507,10 @@ def api_create_game():
 
     try:
         game = game_manager.create_game(mode_id, raw_players, group_id)
-    except (KeyError, ValueError) as exc:
-        return jsonify({"error": str(exc)}), 400
+    except KeyError:
+        return jsonify({"error": "Unknown game mode"}), 400
+    except ValueError:
+        return jsonify({"error": "Invalid player names or configuration"}), 400
 
     return jsonify(game), 201
 
