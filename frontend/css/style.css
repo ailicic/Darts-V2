@@ -64,57 +64,6 @@ html, body {
   overflow: hidden;
 }
 
-/* ---- Video Panel ---- */
-.video-panel {
-  flex: 1 1 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0;
-}
-
-.video-wrapper {
-  position: relative;
-  flex: 1 1 0;
-  background: #000;
-  border-radius: var(--radius);
-  overflow: hidden;
-  border: 1px solid var(--border);
-}
-
-#video-feed {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  display: block;
-}
-
-.calib-canvas {
-  position: absolute;
-  inset: 0;
-  cursor: crosshair;
-  z-index: 10;
-}
-
-.no-camera-overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0,0,0,0.75);
-  color: var(--text-secondary);
-  font-size: 1rem;
-  text-align: center;
-  z-index: 5;
-}
-
-.video-status-bar {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
 /* ---- Score Panel ---- */
 .score-panel {
   width: 280px;
@@ -123,6 +72,13 @@ html, body {
   flex-direction: column;
   gap: 10px;
   overflow-y: auto;
+}
+
+/* Full-width score panel (no video panel alongside) */
+.score-panel-full {
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
 }
 
 .score-total-box {
