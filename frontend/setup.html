@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🎯 New Game — Darts-V2</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    body { display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem 4rem; }
+    .setup-header { text-align: center; margin-bottom: 2rem; }
+    .setup-header h1 { font-size: 2rem; margin: 0 0 0.25rem; }
+    .setup-header p  { color: var(--text-muted,#9e9e9e); margin: 0; }
+    .setup-card {
+      background: var(--panel-bg,#1e1e2a);
+      border: 1px solid var(--border,#333);
+      border-radius: 12px;
+      padding: 1.75rem;
+      width: 100%;
+      max-width: 560px;
+      margin-bottom: 1.25rem;
+    }
+    .setup-card h2 { margin: 0 0 1rem; font-size: 1.05rem; color: var(--accent,#00c896); text-transform: uppercase; letter-spacing: 0.08em; }
+    /* Mode selector */
+    .mode-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+    .mode-btn {
+      background: transparent;
+      border: 1px solid var(--border,#333);
+      border-radius: 8px;
+      color: inherit;
+      cursor: pointer;
+      font-size: 0.88rem;
+      padding: 0.75rem 0.5rem;
+      text-align: center;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .mode-btn:hover { border-color: var(--accent,#00c896); }
+    .mode-btn.selected { border-color: var(--accent,#00c896); background: rgba(0,200,150,0.08); }
+    .mode-btn .mode-icon { display: block; font-size: 1.4rem; margin-bottom: 0.3rem; }
+    .mode-btn .mode-label { display: block; font-weight: 600; }
+    .mode-btn .mode-desc { display: block; font-size: 0.75rem; color: var(--text-muted,#9e9e9e); margin-top: 0.25rem; line-height: 1.4; }
+    /* Players */
+    .player-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .player-row { display: flex; align-items: center; gap: 0.5rem; }
+    .player-row input {
+      flex: 1;
+      background: var(--bg,#12121e);
+      border: 1px solid var(--border,#333);
+      border-radius: 6px;
+      color: inherit;
+      font-size: 0.95rem;
+      padding: 0.55rem 0.9rem;
+      min-height: 44px;
+    }
+    .player-row input:focus { border-color: var(--accent,#00c896); outline: none; }
+    .btn-remove-player { background: transparent; border: none; color: #f44; cursor: pointer; font-size: 1.2rem; padding: 0.4rem; }
+    .btn-add-player {
+      background: transparent;
+      border: 1px dashed var(--border,#333);
+      border-radius: 6px;
+      color: var(--text-muted,#9e9e9e);
+      cursor: pointer;
+      font-size: 0.9rem;
+      padding: 0.6rem;
+      text-align: center;
+      width: 100%;
+      margin-top: 0.25rem;
+      transition: border-color 0.15s;
+    }
+    .btn-add-player:hover { border-color: var(--accent,#00c896); color: inherit; }
+    /* Group */
+    .group-row { display: flex; gap: 0.5rem; align-items: center; }
+    .group-row input { flex: 1; background: var(--bg,#12121e); border: 1px solid var(--border,#333); border-radius:6px; color:inherit; font-size:0.9rem; padding:0.5rem 0.9rem; min-height: 44px; }
+    .group-row input:focus { border-color: var(--accent,#00c896); outline: none; }
+    .group-info { font-size: 0.8rem; color: var(--text-muted,#9e9e9e); margin-top: 0.4rem; }
+    /* Start button */
+    .btn-start { width: 100%; max-width: 560px; font-size: 1.1rem; padding: 0.85rem; min-height: 52px; }
+    .back-link { color: var(--text-muted,#9e9e9e); font-size: 0.85rem; text-decoration: none; margin-top: 1.25rem; }
+    .back-link:hover { color: var(--accent,#00c896); }
+    /* Rules tooltip */
+    #rules-panel { font-size: 0.83rem; color: var(--text-muted,#9e9e9e); margin-top: 0.75rem; line-height: 1.5; min-height: 2.5rem; }
+    @media (max-width: 480px) { .mode-selector { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+  <div class="setup-header">
+    <h1>🎯 New Game</h1>
+    <p>Configure your game and hit Start</p>
+  </div>
+
+  <!-- Mode selector -->
+  <div class="setup-card">
+    <h2>Game Mode</h2>
+    <div class="mode-selector" id="mode-selector">
+      <!-- filled by JS from /api/modes -->
+      <div style="color:var(--text-muted,#9e9e9e);grid-column:1/-1">Loading modes…</div>
+    </div>
+    <div id="rules-panel"></div>
+  </div>
+
+  <!-- Players -->
+  <div class="setup-card">
+    <h2>Players</h2>
+    <div class="player-list" id="player-list">
+      <!-- rows added by JS -->
+    </div>
+    <button class="btn-add-player" id="btn-add-player">+ Add player</button>
+  </div>
+
+  <!-- Group (optional) -->
+  <div class="setup-card">
+    <h2>Group <span style="font-weight:400;opacity:0.6;font-size:0.85em;">(optional)</span></h2>
+    <div class="group-row">
+      <input id="group-slug" type="text" placeholder="e.g. friday-at-mikes" maxlength="40" autocomplete="off" />
+      <button class="btn btn-secondary" id="btn-group-save" style="min-height:44px;">Save</button>
+    </div>
+    <div class="group-info" id="group-info">
+      Keep your leaderboard separate from other groups.
+      Enter a short slug and share the link <code>/g/&lt;slug&gt;</code> with your crew.
+    </div>
+  </div>
+
+  <!-- Start -->
+  <button class="btn btn-success btn-start" id="btn-start">▶ Start Game</button>
+  <a class="back-link" href="/">← Back to home</a>
+
+  <script>
+    "use strict";
+
+    // ── State ──────────────────────────────────────────────────────────────
+    let selectedMode  = "detection";
+    let groupId       = null;
+    let modesData     = [];
+
+    // ── Init ───────────────────────────────────────────────────────────────
+
+    // Restore group from localStorage
+    const stored = (() => { try { return JSON.parse(localStorage.getItem("dartsGroup") || "null"); } catch { return null; } })();
+    if (stored) {
+      groupId = stored.id;
+      document.getElementById("group-slug").value = stored.slug || "";
+    }
+
+    // Pre-fill groupId from URL (set by /g/<slug> redirect)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("group_id")) { groupId = urlParams.get("group_id"); }
+    if (urlParams.get("group_slug")) { document.getElementById("group-slug").value = urlParams.get("group_slug"); }
+
+    // Determine default mode from flow param
+    const flow = urlParams.get("flow") || "";
+    if (flow === "solo") selectedMode = "detection";
+
+    // Load modes
+    fetch("/api/modes")
+      .then(r => r.json())
+      .then(modes => {
+        modesData = modes;
+        renderModes(modes);
+        // Auto-select detection for solo flow
+        if (flow !== "solo") selectMode("501");
+        else selectMode("detection");
+      })
+      .catch(() => {
+        document.getElementById("mode-selector").innerHTML =
+          '<div style="color:#f44">Failed to load modes. Is the server running?</div>';
+      });
+
+    // Add first 2 player inputs
+    const playerList = document.getElementById("player-list");
+    addPlayer("Player 1");
+    if (flow !== "solo") addPlayer("Player 2");
+
+    // ── Mode selector ──────────────────────────────────────────────────────
+
+    const MODE_ICONS = {
+      detection: "🔬",
+      "501":  "🎯",
+      "301":  "🎯",
+      cricket: "🏏",
+      cut_throat: "😈",
+      around_the_clock: "🕐",
+    };
+
+    function renderModes(modes) {
+      const el = document.getElementById("mode-selector");
+      el.innerHTML = "";
+      modes.forEach(m => {
+        const btn = document.createElement("button");
+        btn.className = "mode-btn";
+        btn.dataset.id = m.id;
+        btn.innerHTML = `
+          <span class="mode-icon">${MODE_ICONS[m.id] || "🎯"}</span>
+          <span class="mode-label">${m.label}</span>
+          <span class="mode-desc">${m.rules_summary}</span>
+        `;
+        btn.addEventListener("click", () => selectMode(m.id));
+        el.appendChild(btn);
+      });
+    }
+
+    function selectMode(id) {
+      selectedMode = id;
+      document.querySelectorAll(".mode-btn").forEach(b => {
+        b.classList.toggle("selected", b.dataset.id === id);
+      });
+      const m = modesData.find(x => x.id === id);
+      document.getElementById("rules-panel").textContent = m ? m.rules_summary : "";
+    }
+
+    // ── Players ────────────────────────────────────────────────────────────
+
+    function addPlayer(defaultName = "") {
+      const rows = playerList.querySelectorAll(".player-row");
+      if (rows.length >= 8) return;
+
+      const row = document.createElement("div");
+      row.className = "player-row";
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.maxLength = 40;
+      input.placeholder = `Player ${rows.length + 1}`;
+      input.value = defaultName;
+      input.setAttribute("aria-label", `Player ${rows.length + 1} name`);
+
+      const removeBtn = document.createElement("button");
+      removeBtn.className = "btn-remove-player";
+      removeBtn.textContent = "✕";
+      removeBtn.setAttribute("aria-label", "Remove player");
+      removeBtn.addEventListener("click", () => {
+        row.remove();
+        updateAddButton();
+      });
+
+      row.appendChild(input);
+      row.appendChild(removeBtn);
+      playerList.appendChild(row);
+      updateAddButton();
+    }
+
+    function updateAddButton() {
+      const count = playerList.querySelectorAll(".player-row").length;
+      document.getElementById("btn-add-player").style.display = count >= 8 ? "none" : "";
+    }
+
+    document.getElementById("btn-add-player").addEventListener("click", () => addPlayer());
+
+    // ── Group ──────────────────────────────────────────────────────────────
+
+    document.getElementById("btn-group-save").addEventListener("click", async () => {
+      const slugInput = document.getElementById("group-slug");
+      const slug = slugInput.value.trim().toLowerCase().replace(/[^a-z0-9-]/g, "-");
+      if (!slug) return;
+      slugInput.value = slug;
+
+      const infoEl = document.getElementById("group-info");
+      infoEl.textContent = "Saving…";
+
+      try {
+        const res = await fetch("/api/groups", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ slug, name: slug }),
+        });
+        const data = await res.json();
+        groupId = data.id;
+        localStorage.setItem("dartsGroup", JSON.stringify({ id: data.id, slug: data.slug, name: data.name }));
+        infoEl.textContent = `✓ Group "${slug}" saved. Share /g/${slug} with your crew.`;
+      } catch {
+        infoEl.textContent = "Failed to save group. Try again.";
+      }
+    });
+
+    // ── Start game ─────────────────────────────────────────────────────────
+
+    document.getElementById("btn-start").addEventListener("click", startGame);
+
+    async function startGame() {
+      const names = [...playerList.querySelectorAll(".player-row input")]
+        .map(i => i.value.trim())
+        .filter(Boolean);
+
+      if (names.length === 0) {
+        alert("Add at least one player.");
+        return;
+      }
+
+      const btn = document.getElementById("btn-start");
+      btn.disabled = true;
+      btn.textContent = "Creating game…";
+
+      try {
+        const res = await fetch("/api/games", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mode: selectedMode, players: names, group_id: groupId }),
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || "Server error");
+        }
+
+        const game = await res.json();
+        // Redirect to the play page
+        window.location.href = `/detect?gameId=${game.id}`;
+      } catch (e) {
+        alert("Could not create game: " + e.message);
+        btn.disabled = false;
+        btn.textContent = "▶ Start Game";
+      }
+    }
+  </script>
+
+</body>
+</html>

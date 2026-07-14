@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🎯 Darts-V2</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* ── Landing-specific overrides ── */
+    body { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
+    .landing-hero { text-align: center; margin-bottom: 2.5rem; }
+    .landing-hero h1 { font-size: 2.8rem; margin: 0 0 0.4rem; letter-spacing: 0.04em; }
+    .landing-hero p  { color: var(--text-muted, #9e9e9e); font-size: 1.05rem; margin: 0; }
+    .mode-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.25rem;
+      width: 100%;
+      max-width: 860px;
+      padding: 0 1rem;
+    }
+    .mode-card {
+      background: var(--panel-bg, #1e1e2a);
+      border: 1px solid var(--border, #333);
+      border-radius: 12px;
+      padding: 2rem 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+    .mode-card:hover { border-color: var(--accent, #00c896); transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,200,150,0.12); }
+    .mode-card .icon { font-size: 3rem; display: block; margin-bottom: 1rem; }
+    .mode-card h2 { margin: 0 0 0.5rem; font-size: 1.25rem; }
+    .mode-card p  { margin: 0; color: var(--text-muted, #9e9e9e); font-size: 0.9rem; line-height: 1.5; }
+    .mode-card.recommended { border-color: var(--accent, #00c896); }
+    .recommended-badge {
+      display: inline-block;
+      background: var(--accent, #00c896);
+      color: #000;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 99px;
+      margin-bottom: 0.75rem;
+    }
+    .join-form {
+      margin-top: 2.5rem;
+      text-align: center;
+    }
+    .join-form p { color: var(--text-muted, #9e9e9e); margin: 0 0 0.75rem; }
+    .join-row {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .join-row input {
+      background: var(--panel-bg, #1e1e2a);
+      border: 1px solid var(--border, #333);
+      border-radius: 6px;
+      color: inherit;
+      font-size: 1.05rem;
+      letter-spacing: 0.12em;
+      padding: 0.55rem 1rem;
+      text-transform: uppercase;
+      width: 10rem;
+    }
+    .join-row input:focus { border-color: var(--accent, #00c896); outline: none; }
+    .join-row button { min-width: 6rem; }
+    .sep { color: var(--text-muted, #9e9e9e); margin: 1.5rem 0 0; font-size: 0.85rem; }
+    @media (pointer: coarse) { .mode-card.auto-suggest { border-color: var(--accent, #00c896); } }
+  </style>
+</head>
+<body>
+
+  <div class="landing-hero">
+    <h1>🎯 Darts-V2</h1>
+    <p>Real-time dart detection &amp; scoring. Pick how you want to play.</p>
+  </div>
+
+  <div class="mode-grid">
+
+    <!-- TV / Big screen -->
+    <a class="mode-card" href="/setup?flow=tv" id="card-tv">
+      <span class="icon">📺</span>
+      <h2>TV / Big Screen</h2>
+      <p>Set up a game, throw darts, and track scores on a wall display. Camera detects each dart automatically.</p>
+    </a>
+
+    <!-- Single phone -->
+    <a class="mode-card auto-suggest" href="/setup?flow=shared" id="card-shared">
+      <span class="recommended-badge">most popular</span>
+      <span class="icon">📱</span>
+      <h2>One Phone for Everyone</h2>
+      <p>Pass the phone around. Anyone can enter scores or let the camera do it. Great for quick games.</p>
+    </a>
+
+    <!-- Solo / practice -->
+    <a class="mode-card" href="/setup?flow=solo" id="card-solo">
+      <span class="icon">🎯</span>
+      <h2>Solo / Practice</h2>
+      <p>Single-player session. Practice your throw or calibrate the camera. No game rules — pure detection.</p>
+    </a>
+
+    <!-- Detection-only -->
+    <a class="mode-card" href="/detect" id="card-detect">
+      <span class="icon">🔬</span>
+      <h2>Detection Only</h2>
+      <p>Standalone camera dashboard. No player management — just score tracking and camera calibration.</p>
+    </a>
+
+  </div>
+
+  <!-- Join by code -->
+  <div class="join-form">
+    <p>Already have a room code?</p>
+    <div class="join-row">
+      <input id="room-code" type="text" maxlength="5" placeholder="X7K2A" autocomplete="off" spellcheck="false" />
+      <button class="btn btn-primary" id="btn-join">Join Game</button>
+    </div>
+    <div id="join-error" style="color:#f44;margin-top:0.5rem;font-size:0.9rem;display:none;"></div>
+  </div>
+
+  <p class="sep">or <a href="/setup" style="color:var(--accent,#00c896)">create a new game</a></p>
+
+  <script>
+    "use strict";
+
+    // Auto-suggest single-phone mode on touch/narrow devices
+    if (window.innerWidth < 768 && window.matchMedia("(pointer: coarse)").matches) {
+      document.getElementById("card-shared").classList.add("recommended");
+    }
+
+    // Join by code
+    const inputCode = document.getElementById("room-code");
+    const btnJoin   = document.getElementById("btn-join");
+    const errDiv    = document.getElementById("join-error");
+
+    btnJoin.addEventListener("click", joinByCode);
+    inputCode.addEventListener("keydown", e => { if (e.key === "Enter") joinByCode(); });
+
+    async function joinByCode() {
+      const code = inputCode.value.trim().toUpperCase();
+      if (code.length < 1) { showErr("Enter a room code."); return; }
+      errDiv.style.display = "none";
+      btnJoin.disabled = true;
+      btnJoin.textContent = "Looking up…";
+      try {
+        const res = await fetch(`/api/games/by-code/${encodeURIComponent(code)}`);
+        if (res.ok) {
+          const game = await res.json();
+          window.location.href = `/detect?gameId=${game.id}`;
+        } else {
+          showErr("Room not found. Check the code and try again.");
+        }
+      } catch {
+        showErr("Network error. Are you online?");
+      } finally {
+        btnJoin.disabled = false;
+        btnJoin.textContent = "Join Game";
+      }
+    }
+
+    function showErr(msg) {
+      errDiv.textContent = msg;
+      errDiv.style.display = "block";
+    }
+  </script>
+
+</body>
+</html>

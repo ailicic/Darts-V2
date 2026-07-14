@@ -523,3 +523,122 @@ html, body {
 
 /* ---- Utilities ---- */
 .hidden { display: none !important; }
+
+/* ================================================================
+   Game overlay elements (Phase 1/3/5)
+   ================================================================ */
+
+/* -- Offline banner ------------------------------------------------ */
+.offline-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: var(--red);
+  color: #fff;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 6px;
+  z-index: 9999;
+  animation: slideDown 0.3s ease;
+}
+@keyframes slideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+
+/* -- Game banner (current player + controls) ---------------------- */
+.game-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.6rem 1.25rem;
+  background: var(--bg-card-alt);
+  border-bottom: 2px solid var(--green);
+}
+.current-player-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.current-player-name {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--green);
+}
+.current-player-score {
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+.game-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.game-code-badge {
+  font-size: 0.8rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.2rem 0.6rem;
+  letter-spacing: 0.08em;
+  font-family: monospace;
+  color: var(--text-secondary);
+}
+
+/* -- Small buttons ------------------------------------------------- */
+.btn-sm {
+  font-size: 0.8rem;
+  padding: 0.35rem 0.7rem;
+  min-height: 36px;
+}
+
+/* -- Game scoreboard panel ---------------------------------------- */
+.game-scoreboard-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+.scoreboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.scoreboard-table th {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.25rem 0.4rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.scoreboard-table td {
+  padding: 0.45rem 0.4rem;
+  border-bottom: 1px solid var(--border);
+}
+.scoreboard-table tr:last-child td { border-bottom: none; }
+.scoreboard-active-row { background: rgba(0,230,118,0.07); }
+.scoreboard-active-row td:first-child { color: var(--green); font-weight: 700; }
+.score-cell { font-weight: 700; text-align: right; }
+.extra-cell { text-align: right; }
+
+/* -- Mobile: touch-friendly targets (Phase 5) --------------------- */
+@media (pointer: coarse) {
+  .btn, button, .mode-btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  .btn-end-turn {
+    min-height: 52px;
+    font-size: 1rem;
+  }
+}
+
+/* -- CSS variables bridging for landing / setup pages ------------- */
+:root {
+  --panel-bg: var(--bg-card);
+  --bg: var(--bg-base);
+}
