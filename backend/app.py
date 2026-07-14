@@ -406,15 +406,25 @@ def group_join(slug: str):
     """
     Group entry point.  Redirects to /setup with the group's id embedded so
     the setup page can pre-populate groupId in localStorage.
+    All user input is validated/sanitised before use; the redirect target is
+    always the internal /setup path (no open-redirect risk).
     """
-    # Validate slug before using it in a redirect to prevent open-redirect attacks
+    from urllib.parse import urlencode
+
+    # Allow only safe characters in slug before any use
     clean_slug = _sanitize_slug(slug)
     if not clean_slug:
         return redirect("/setup")
+
     group = get_group_by_slug(clean_slug)
     if not group:
-        return redirect(f"/setup?group_slug={clean_slug}&create=1")
-    return redirect(f"/setup?group_id={group['id']}&group_name={group['name']}")
+        # Redirect to setup with creation hint; slug is already sanitised
+        params = urlencode({"group_slug": clean_slug, "create": "1"})
+        return redirect(f"/setup?{params}")
+
+    # Use DB-returned values (trusted) for the redirect query params
+    params = urlencode({"group_id": group["id"], "group_name": group["name"]})
+    return redirect(f"/setup?{params}")
 
 
 @app.route("/<path:path>")
