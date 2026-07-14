@@ -7,11 +7,30 @@
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
+  <!-- ===== OFFLINE BANNER (shown when Socket.IO disconnects) ===== -->
+  <div id="offline-banner" class="offline-banner hidden" role="alert">
+    ⚠ Connection lost — reconnecting…
+  </div>
+
   <!-- ===== HEADER ===== -->
   <header class="app-header">
     <h1>🎯 Darts-V2</h1>
     <span id="connection-status" class="badge badge-offline">Offline</span>
+    <a href="/" class="btn btn-secondary btn-sm" style="margin-left:auto">🏠 Home</a>
   </header>
+
+  <!-- ===== GAME BANNER (shown when a game is active) ===== -->
+  <div id="game-banner" class="game-banner hidden">
+    <div id="current-player-indicator" class="current-player-indicator">
+      <span id="current-player-name" class="current-player-name">–</span>
+      <span id="current-player-score" class="current-player-score"></span>
+    </div>
+    <div class="game-banner-actions">
+      <button class="btn btn-warning btn-sm" id="btn-end-turn">End Turn ➜</button>
+      <button class="btn btn-secondary btn-sm" id="btn-game-undo">↩ Undo</button>
+      <span id="game-code-badge" class="game-code-badge"></span>
+    </div>
+  </div>
 
   <!-- ===== MAIN LAYOUT ===== -->
   <main class="app-body">
@@ -57,6 +76,18 @@
           </div>
           <span id="confidence-pct" class="confidence-pct">0%</span>
         </div>
+      </div>
+
+      <!-- Game scoreboard (visible only when game is active) -->
+      <div id="game-scoreboard-box" class="game-scoreboard-box hidden">
+        <div class="history-header">
+          <span>Scoreboard</span>
+          <span id="game-mode-label" style="font-size:0.8rem;color:var(--text-muted,#9e9e9e)"></span>
+        </div>
+        <table id="scoreboard-table" class="scoreboard-table">
+          <thead><tr><th>Player</th><th>Score</th><th></th></tr></thead>
+          <tbody id="scoreboard-body"></tbody>
+        </table>
       </div>
 
       <!-- Dart history list -->
@@ -187,7 +218,21 @@
   <!-- Toast notifications -->
   <div id="toast-container" aria-live="polite"></div>
 
+  <!-- Winner modal -->
+  <div id="modal-winner" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-box" style="text-align:center">
+      <div style="font-size:3rem;margin-bottom:0.5rem">🏆</div>
+      <h2 id="winner-title">Winner!</h2>
+      <p id="winner-body"></p>
+      <div class="modal-actions">
+        <a class="btn btn-success" href="/setup">New Game</a>
+        <a class="btn btn-secondary" href="/">Home</a>
+      </div>
+    </div>
+  </div>
+
   <script src="js/socket.io.min.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/game.js"></script>
 </body>
 </html>

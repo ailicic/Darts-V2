@@ -12,6 +12,14 @@
 // ---------------------------------------------------------------------------
 
 const socket = io();
+// Expose globally so game.js can access it
+window.socket = socket;
+
+// ---------------------------------------------------------------------------
+// Offline banner
+// ---------------------------------------------------------------------------
+
+const offlineBanner = document.getElementById("offline-banner");
 
 // ---------------------------------------------------------------------------
 // DOM references
@@ -84,6 +92,8 @@ function showToast(msg, type = "info", duration = 3000) {
   container.appendChild(el);
   setTimeout(() => el.remove(), duration);
 }
+// Expose globally so game.js can call showToast
+window.showToast = showToast;
 
 function openModal(modal) {
   modal.classList.remove("hidden");
@@ -205,10 +215,12 @@ function setBoardCalibrated(calibrated) {
 
 socket.on("connect", () => {
   setConnected(true);
+  offlineBanner && offlineBanner.classList.add("hidden");
 });
 
 socket.on("disconnect", () => {
   setConnected(false);
+  offlineBanner && offlineBanner.classList.remove("hidden");
 });
 
 socket.on("status", data => {
