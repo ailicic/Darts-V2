@@ -418,9 +418,9 @@ def group_join(slug: str):
 
     group = get_group_by_slug(clean_slug)
     if not group:
-        # Redirect to setup with creation hint; slug is already sanitised
-        params = urlencode({"group_slug": clean_slug, "create": "1"})
-        return redirect(f"/setup?{params}")
+        # Group doesn't exist yet — send to setup. The browser can create it there.
+        # We do NOT include user-supplied data in the redirect URL.
+        return redirect("/setup")
 
     # Use DB-returned values (trusted) for the redirect query params
     params = urlencode({"group_id": group["id"], "group_name": group["name"]})
